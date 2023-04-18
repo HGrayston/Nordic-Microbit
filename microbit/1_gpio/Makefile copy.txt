@@ -1,5 +1,5 @@
 FAMILY := nrf52
-SOURCES := main.c gpio.c uart.c
+SOURCES := main.c
 
 BUILD_DIR := .build_system
 LINKER_SCRIPT := $(BUILD_DIR)/linker_script.ld
@@ -38,22 +38,48 @@ default:
 	@echo Creating hex file
 	$(QUIET)$(OBJCOPY) -O ihex $(BUILD_DIR)/main.elf $(BUILD_DIR)/main.hex
 
-debug:
-	@echo Compiling project with debug
-	$(CC) $(CFLAGS) -g $(SOURCES) -o $(BUILD_DIR)/main.elf
-	@echo Creating hex file
-	$(OBJCOPY) -O ihex $(BUILD_DIR)/main.elf $(BUILD_DIR)/main.hex
+flash:
+	nrfjprog -f $(FAMILY) --sectorerase --program $(BUILD_DIR)/main.hex
+	nrfjprog -f $(FAMILY) --reset
 
-
-load:
-	@echo Loading main.hex to bootloader
-	pyocd load $(BUILD_DIR)/main.hex
-	@echo Resetting
-	pyocd reset
 erase:
-	@echo Erasing chip with pyocd
-	pyocd erase -c
+	nrfjprog -f $(FAMILY) --eraseall
 
 clean:
-	$(QUIET)rm $(BUILD_DIR)/main.elf
-	$(QUIET)rm $(BUILD_DIR)/main.hex
+	$(QUIET)rm $(BUILD_DIR)/main.{elf,hex}
+
+
+
+
+
+
+
+
+			/*
+		/* Check if button B is pressed;
+		 * turn on LED matrix if it is. */
+		/*
+		if (!(__GPIO0__->IN & (1<<__BUTTON_B_PIN__))) {
+			__GPIO0__->OUT |= (1<<21);
+			__GPIO0__->OUT |= (1<<22);
+			__GPIO0__->OUT |= (1<<15);
+			__GPIO0__->OUT |= (1<<24);
+			__GPIO0__->OUT |= (1<<19);
+			__GPIO0__->OUT &= ~(1<<28);
+			__GPIO0__->OUT &= ~(1<<11);
+			__GPIO0__->OUT &= ~(1<<31);
+			__GPIO1__->OUT &= ~(1<<5);
+			__GPIO0__->OUT &= ~(1<<30);
+		}
+
+		/* Check if button A is pressed;
+		 * turn off LED matrix if it is. 
+		if (!(__GPIO0__->IN & (1<<__BUTTON_A_PIN__))) {
+			__GPIO0__->OUT &= 1;
+			__GPIO1__->OUT &= 0;
+		}
+
+		sleep = 10000;
+		while(--sleep);
+		*/
+
